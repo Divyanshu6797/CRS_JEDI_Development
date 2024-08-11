@@ -2,6 +2,7 @@ package com.flipkart.bean;
 
 public class Admin {
 	private int adminId;
+	
 
 	public int getAdminId() {
 		return adminId;

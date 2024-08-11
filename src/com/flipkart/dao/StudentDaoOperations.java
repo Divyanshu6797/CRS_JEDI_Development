@@ -150,7 +150,6 @@ public class StudentDaoOperations implements StudentDaoInterface {
 	        Connection con = dbConnect.getConnection();
 
 	        try {
-	           
 	            String checkRegistrationQuery = "SELECT * FROM registeredcourse WHERE studentId = ? AND courseId = ?";
 	            PreparedStatement checkRegistrationStmt = con.prepareStatement(checkRegistrationQuery);
 	            checkRegistrationStmt.setInt(1, studentId);
