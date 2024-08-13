@@ -1,14 +1,14 @@
 package com.flipkart.bean;
 
 public class Student {
-	private String studentId;
+	private int studentId;
     private int batch;
     private String branch;
     private boolean isApproved;
-	public String getStudentId() {
+	public int getStudentId() {
 		return studentId;
 	}
-	public void setStudentId(String studentId) {
+	public void setStudentId(int studentId) {
 		this.studentId = studentId;
 	}
 	public int getBatch() {

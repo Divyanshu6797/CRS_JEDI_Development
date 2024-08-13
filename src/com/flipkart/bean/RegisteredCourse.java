@@ -4,7 +4,7 @@ public class RegisteredCourse {
 	private int studentId;
 	private int courseId;
 	private String registeredCoursename;
-	private char grade;
+	private String grade;
 	private int credit;
 	public int getStudentId() {
 		return studentId;
@@ -18,10 +18,10 @@ public class RegisteredCourse {
 	public void setRegisteredCoursename(String registeredCoursename) {
 		this.registeredCoursename = registeredCoursename;
 	}
-	public char getGrade() {
+	public String getGrade() {
 		return grade;
 	}
-	public void setGrade(char grade) {
+	public void setGrade(String grade) {
 		this.grade = grade;
 	}
 	public int getCredit() {

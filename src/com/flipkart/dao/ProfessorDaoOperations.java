@@ -3,120 +3,103 @@ package com.flipkart.dao;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
-public class ProfessorDaoOperations implements ProfessorDaoInterface{
+import com.flipkart.bean.Course;
+import com.flipkart.bean.Student;
+import com.flipkart.exception.CourseNotFoundException;
+import com.flipkart.utils.DButils;
 
-	@Override
-	public void viewCourses(int professorId) {
-	    try  {
-Connection con = new DatabaseConnection().getConnection();
-	        
-	        // Preparing SQL query to fetch courses where professorId = instructorId
-	        PreparedStatement stmt = con.prepareStatement("SELECT courseid, courseName, credit, filledSeats FROM course WHERE instructorId = ?");
-	        
-	        stmt.setInt(1, professorId);
+public class ProfessorDaoOperations implements ProfessorDaoInterface {
 
-	        
-	        ResultSet rs = stmt.executeQuery();
+    @Override
+    public void viewCourses(int professorId) {
+        // Retrieve and display courses taught by the professor
+        try (
+            Connection con = DButils.getConnection();
+            PreparedStatement stmt = con.prepareStatement("SELECT * FROM course WHERE instructorId = ?");
+        ) {
+            stmt.setInt(1, professorId);
+            ResultSet rs = stmt.executeQuery();
 
-	      
-	        System.out.println("Course ID | Course Name         | Credit | Filled Seats");
-	        System.out.println("------------------------------------------------------");
-	        while (rs.next()) {
-	            int courseId = rs.getInt("courseid");
-	            String courseName = rs.getString("courseName");
-	            int credit = rs.getInt("credit");
-	            int filledSeats = rs.getInt("filledSeats");
+            while (rs.next()) {
+                Course course = new Course();
+                course.setCourseId(rs.getInt("courseId"));
+                course.setCourseName(rs.getString("courseName"));
+                course.setInstructorId(rs.getInt("instructorId"));
+                course.setInstructorName(rs.getString("instructorName"));
+                course.setFilledSeats(rs.getInt("filledSeats"));
+                course.setCredit(rs.getInt("credit"));
 
-	            System.out.printf("%-9d | %-20s | %-6d | %-12d\n",
-	                              courseId, courseName, credit, filledSeats);
-	        }
-
-	        
-
-	    } catch (Exception e) {
-	        System.out.println("Error: " + e.getMessage());
-	        System.out.println("Couldn't retrieve course data.");
-	    }
-	}
-
-
-	@Override
-	public void viewStudents(int professorId) {
-	    try  {
-Connection con = new DatabaseConnection().getConnection();
-	        
-	        
-	        PreparedStatement stmt = con.prepareStatement(
-	            "SELECT courseId, studentId, registeredCoursename, grade, credit " +
-	            "FROM registeredcourse WHERE instructorId = ?");
-	        
-	        stmt.setInt(1, professorId);
-
-	       
-	        ResultSet rs = stmt.executeQuery();
-
-	        
-	        System.out.println("Course ID | Student ID | Course Name         | Grade | Credit");
-	        System.out.println("-------------------------------------------------------------");
-	        while (rs.next()) {
-	            int courseId = rs.getInt("courseId");
-	            int studentId = rs.getInt("studentId");
-	            String courseName = rs.getString("registeredCoursename");
-	            String grade = rs.getString("grade");
-	            int credit = rs.getInt("credit");
-
-	            System.out.printf("%-9d | %-10d | %-20s | %-5s | %-6d\n",
-	                              courseId, studentId, courseName, grade, credit);
-	        }
-
-	       
-
-	    } catch (Exception e) {
-	        System.out.println("Error: " + e.getMessage());
-	        System.out.println("Couldn't retrieve student data.");
-	    }
-	}
-
-
-	@Override
-	 public void gradeStudent(int professorId, int studentId, int courseId) {
-        // Initialize Scanner to take input
-        Scanner scanner = new Scanner(System.in);
-
-        // Prompt the professor to input the grade
-        System.out.print("Enter the grade for student with ID " + studentId + " in course with ID " + courseId + ": ");
-        String grade = scanner.nextLine();
-
-        try  {
-Connection con = new DatabaseConnection().getConnection();
-
-            
-            PreparedStatement stmt = con.prepareStatement(
-                "UPDATE registeredcourse SET grade = ? " +
-                "WHERE studentId = ? AND courseId = ? AND instructorId = ?");
-            stmt.setString(1, grade);           // Set the grade
-            stmt.setInt(2, studentId);          // Set the student ID
-            stmt.setInt(3, courseId);           // Set the course ID
-            stmt.setInt(4, professorId);        // Set the professor's instructor ID
-
-           
-            int rowsAffected = stmt.executeUpdate();
-
-            
-            if (rowsAffected > 0) {
-                System.out.println("Grade updated successfully for student ID " + studentId + " in course ID " + courseId + ".");
-            } else {
-                System.out.println("Failed to update grade. Please check the student ID, course ID, and professor ID.");
+                // Display course details
+                System.out.printf("%-10d %-20s %-20s %-15d %-12d %-6d\n",
+                        course.getCourseId(),
+                        course.getCourseName(),
+                        course.getInstructorName(),
+                        course.getInstructorId(),
+                        course.getFilledSeats(),
+                        course.getCredit());
             }
-
-        } catch (Exception e) {
+        } catch (SQLException e) {
             System.out.println("Error: " + e.getMessage());
-            System.out.println("Couldn't update the grade.");
         }
     }
-	
-	
 
+    @Override
+    public void viewStudents(int professorId) {
+        // Retrieve and display students enrolled in the professor's courses
+        try (
+            Connection con = DButils.getConnection();
+            PreparedStatement stmt = con.prepareStatement("SELECT s.studentId, s.batch, s.branch FROM student s JOIN course c ON s.studentId = c.courseId WHERE c.instructorId = ?");
+        ) {
+            stmt.setInt(1, professorId);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                Student student = new Student();
+                student.setStudentId(rs.getInt("studentId"));
+                student.setBatch(rs.getInt("batch"));
+                student.setBranch(rs.getString("branch"));
+
+                // Display student details
+                System.out.printf("%-10d %-10d %-25s\n",
+                        student.getStudentId(),
+                        student.getBatch(),
+                        student.getBranch());
+            }
+        } catch (SQLException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public void gradeStudent(int professorId, int studentId, int courseId) {
+        // Grade a student for a specific course
+        try (
+            Connection con = DButils.getConnection();
+            PreparedStatement stmt = con.prepareStatement("UPDATE registeredcourse SET grade = ? WHERE studentId = ? AND courseId = ?");
+        ) {
+            // Input grading information
+            Scanner sc = new Scanner(System.in);
+            System.out.println("Enter grade for studentId " + studentId + " in courseId " + courseId + ":");
+            String grade = sc.next();
+
+            stmt.setString(1, grade);
+            stmt.setInt(2, studentId);
+            stmt.setInt(3, courseId);
+
+            int rowsAffected = stmt.executeUpdate();
+            if (rowsAffected > 0) {
+                System.out.println("Grade updated successfully for student id : "+studentId+" Courseid : "+courseId);
+                System.out.println("Grade : "+grade);
+            } else {
+                System.out.println("No records updated. Please check the student ID and course ID.");
+            }
+        } catch (SQLException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
 }
